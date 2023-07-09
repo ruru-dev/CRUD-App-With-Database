@@ -46,7 +46,7 @@ const createPlant = (req, res)=> {
     }
     // Handle scenario where we successfully write to the database.
     else {
-      // Anything in the 200's is a success. 201 is a creation success
+      // Anything in the 200's is a success. 201 is a creation success. Will by default send "Created" message in the response body.
       res.sendStatus(201);
     }
   });
@@ -161,7 +161,7 @@ const updatePlant = (req, res)=> {
   }
   else if(req.body.sun_exposure == null) {
     res.status(400).json('Sun exposure is required');
-  };
+  }
 
   // The SQL query that will update an existing plant in the database.
   const sql = `

@@ -8,10 +8,12 @@ const router = express.Router();
 // The controller has the logic that will handle this request.
 const controller = require('../controller/plants.js');
 
+//In order to use the middleware object we must require it.
+const authMiddleware = require('../middleware/auth.js');
 
 // POST REQUEST
 // Here we are creating a POST endpoint to create a new plant.
-router.post('/plants', controller.createPlant);
+router.post('/plants', authMiddleware.checkJwt, controller.createPlant);
 
 
 // GET REQUEST

@@ -16,10 +16,11 @@ app.use(bodyParser.json());
 // The middleware will give our app instructions when handling every request.
 app.use(require("./routes/plants.js"));
 
+// Require the file that will contain our auth related routes (register and login.)
+app.use(require("./routes/auth.js"));
 
 // This middleware makes the public directory directly accessible to the internet.
 app.use(express.static('public'));
-
 
 // Our app needs to listen for incoming requests. A callback function can be invoked anytime we start listening
 // If you don't provide a port, the express app will default to port 3000
