@@ -16,7 +16,11 @@ const checkJwt = (req, res, next) => {
     const actualToken = tokenParts[1];
 
     try {
+      // Decode the JSON web token that was provided to us by the user.
       const decodedToken = jsonWebToken.verify(actualToken, process.env.JWT_KEY);
+      // Append the user id from the decoded token to the request body on the user's behalf.
+      // The id in the decoded token represents the id from the user table (for the currently logged in user.)
+      req.body.user_id = decodedToken.id;
     }
     catch(error){
       // Error message 401 is unauthorized. Meaning the token they provided was not valid.

@@ -1,60 +1,10 @@
 // Create a variabe that stores our database connection
 const db = require('../sql/connection');
 
-//Controller function to create a plant
-const createPlant = (req, res)=> {
-  // Requiring certain fields to be provided
-  // Send a 400 response (user/client error) and an error message if not provided.
-  if(req.body.common_name == null) {
-    res.status(400).json('Common name is required');
-  }
-  else if(req.body.zone == null) {
-    res.status(400).json('Zone is required');
-  }
-  else if(req.body.sun_exposure == null) {
-    res.status(400).json('Sun exposure is required');
-  };
-
-  // The SQL query that will insert a new record (plant) in the database.
-  const sql = `
-    INSERT INTO plant
-      (common_name, botanical_name, zone, sun_exposure, height, width)
-    VALUES 
-      (?,?,?,?,?,?)
-    `;
-
-  // Because our query is parameterized, we need to provide the values to inject into the query.
-  // By parameterizing the query, we ensure that users cannot manipulate our SQL query. This is a secure practice.
-  const params = [
-    req.body.common_name, 
-    req.body.botanical_name, 
-    req.body.zone, 
-    req.body.sun_exposure, 
-    req.body.height, 
-    req.body.width
-  ];
-
-  // Send the query to our database, using the connection we created (db object).
-  db.query(sql, params, function(err, results) {
-    // Handle scenario where an error occurs.
-    if(err) {
-      console.log("An error occurred while attempting to insert into the database.", err)
-      // sendStatus represents an HTTP response status.
-      // 500 is a server error
-      res.sendStatus(500);
-    }
-    // Handle scenario where we successfully write to the database.
-    else {
-      // Anything in the 200's is a success. 201 is a creation success. Will by default send "Created" message in the response body.
-      res.sendStatus(201);
-    }
-  });
-}
-
-//Controller function to list all plants.
-const listPlants = (req, res)=> {
-  // The SQL query that will fetch all records from our plant table.
-  const sql = `SELECT * FROM plant`;
+// Controller function to list all images.
+const listImages = (req, res)=> {
+  // The SQL query that will fetch all records from our image table.
+  const sql = `SELECT * FROM image`;
 
   // Send the query to our database, using the connection we created (db object).
   db.query(sql, function(err, results) {
@@ -74,16 +24,14 @@ const listPlants = (req, res)=> {
   })
 };
 
-//Controller function to list one plant.
-const getPlant = (req, res)=> {
-  // The SQL query that will fetch a single record from our plant table.
-  const sql = `SELECT * FROM plant WHERE id = ?`;
+// Controller function to get one image.
+const getImage = (req, res)=> {
+  // The SQL query that will fetch one record from our image table.
+  // The id is parameterized and will be susbstituted with the value provided in the path parameter.
+  // This is required so that users cannot perform sql injection.
+  const sql = `SELECT * FROM image WHERE id = ?`;
 
-   // Because our query is parameterized, we need to provide the values to inject into the query.
-  // By parameterizing the query, we ensure that users cannot manipulate our SQL query. This is a secure practice.
-  const params = [
-    req.params.id
-  ];
+  const params = [req.params.id];
 
   // Send the query to our database, using the connection we created (db object).
   db.query(sql, params, function(err, results) {
@@ -109,10 +57,71 @@ const getPlant = (req, res)=> {
   })
 };
 
-// Controller function to delete a plant.
-const deletePlant = (req, res)=> {
-  // The SQL query that will delete a single plant from our table.
-  const sql = `DELETE FROM plant WHERE id = ?`;
+//Controller function to create an image.
+const createImage = (req, res)=> {
+  // Requiring certain fields to be provided
+  // Send a 400 response (user/client error) and an error message if not provided.
+  if(req.body.zone == null) {
+    res.status(400).json('Zone is required');
+  }
+  // else if(req.body.image_url == null) {
+  //   res.status(400).json('Failed to upload image.');
+  // };
+
+  // The SQL query that will insert a new record (image) in the database.
+  const sql = `
+    INSERT INTO image
+      ( 
+        user_id, 
+        image_url, 
+        submit_date, 
+        image_date, 
+        zone, state, 
+        country, 
+        sun_exposure, 
+        soil_type, 
+        fertilizer_schedule
+        )
+    VALUES 
+      (?,?,?,?,?,?,?,?,?,?)
+    `;
+
+  // Because our query is parameterized, we need to provide the values to inject into the query.
+  // By parameterizing the query, we ensure that users cannot manipulate our SQL query. This is a secure practice.
+  const params = [
+    req.body.user_id, 
+    `localhost:3000/static/assets/uploads/${req.file.filename}`,
+    new Date().toISOString(), 
+    req.body.image_date, 
+    req.body.zone, 
+    req.body.state,
+    req.body.country,
+    req.body.sun_exposure,
+    req.body.soil_type,
+    req.body.fertilizer_schedule
+  ];
+
+  // Send the query to our database, using the connection we created (db object).
+  db.query(sql, params, function(err, results) {
+    // Handle scenario where an error occurs.
+    if(err) {
+      console.log("An error occurred while attempting to insert into the database.", err)
+      // sendStatus represents an HTTP response status.
+      // 500 is a server error
+      res.sendStatus(500);
+    }
+    // Handle scenario where we successfully write to the database.
+    else {
+      // Anything in the 200's is a success. 201 is a creation success. Will by default send "Created" message in the response body.
+      res.sendStatus(201);
+    }
+  });
+};
+
+//Controller function to delete an image.
+const deleteImage = (req, res)=> {
+  // The SQL query that will delete a single image from our table.
+  const sql = `DELETE FROM image WHERE id = ?`;
 
    // Because our query is parameterized, we need to provide the values to inject into the query.
   // By parameterizing the query, we ensure that users cannot manipulate our SQL query. This is a secure practice.
@@ -131,7 +140,6 @@ const deletePlant = (req, res)=> {
     }
     // Handle scenario where we successfully delete from the database.
     else {
-      console.log(results);
       // If the database query succeeded but we didn't get any results back, send a 404 response(not found).
       if (results.affectedRows === 0) {
         res.sendStatus(404);
@@ -146,42 +154,43 @@ const deletePlant = (req, res)=> {
 };
 
 // Controller function to update a plant.
-const updatePlant = (req, res)=> {
+const updateImage = (req, res)=> {
 
   // Requiring certain fields to be provided
   // Send a 400 response (user/client error) and an error message if not provided.
-  if(req.body.common_name == null) {
-    res.status(400).json('Common name is required');
-  }
-  else if(req.body.zone == null) {
+  if(req.body.zone == null) {
     res.status(400).json('Zone is required');
   }
-  else if(req.body.sun_exposure == null) {
-    res.status(400).json('Sun exposure is required');
-  }
+  // else if(req.body.image_url == null) {
+  //   res.status(400).json('Failed to upload image.');
+  // };
 
-  // The SQL query that will update an existing plant in the database.
+  // The SQL query that will update an existing image in the database.
   const sql = `
-    UPDATE plant
+    UPDATE image
     SET 
-      common_name = ?, 
-      botanical_name = ?, 
+      image_url = ?, 
+      image_date = ?, 
       zone = ?, 
-      sun_exposure = ?, 
-      height = ?, 
-      width = ?
+      state = ?, 
+      country = ?,
+      sun_exposure = ?,
+      soil_type = ?,
+      fertilizer_schedule = ?
     WHERE id = ?
     `;
 
   // Because our query is parameterized, we need to provide the values to inject into the query.
   // By parameterizing the query, we ensure that users cannot manipulate our SQL query. This is a secure practice.
   const params = [
-    req.body.common_name, 
-    req.body.botanical_name, 
+    `localhost:3000/static/assets/uploads/${req.file.filename}`,
+    req.body.image_date, 
     req.body.zone, 
-    req.body.sun_exposure, 
-    req.body.height, 
-    req.body.width,
+    req.body.state, 
+    req.body.country, 
+    req.body.sun_exposure,
+    req.body.soil_type,
+    req.body.fertilizer_schedule,
     req.params.id
   ];
 
@@ -204,8 +213,8 @@ const updatePlant = (req, res)=> {
         res.sendStatus(204);
       }
     }
-  })
+  });
 };
 
-//Creating an object with the plant operations as keys.
-module.exports = {createPlant, listPlants, getPlant, deletePlant, updatePlant}
+//Creating an object with the image operations as keys.
+module.exports = {listImages, getImage, createImage, deleteImage, updateImage};
